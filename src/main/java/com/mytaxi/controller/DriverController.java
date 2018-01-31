@@ -4,8 +4,12 @@ import com.mytaxi.controller.mapper.DriverMapper;
 import com.mytaxi.datatransferobject.DriverDTO;
 import com.mytaxi.domainobject.DriverDO;
 import com.mytaxi.domainvalue.OnlineStatus;
+import com.mytaxi.exception.CarAlreadyInUseException;
 import com.mytaxi.exception.ConstraintsViolationException;
 import com.mytaxi.exception.EntityNotFoundException;
+import com.mytaxi.exception.ServiceException;
+import com.mytaxi.filter.Criteria;
+import com.mytaxi.filter.DriverFactory;
 import com.mytaxi.service.driver.DriverService;
 import java.util.List;
 import javax.validation.Valid;
@@ -32,6 +36,9 @@ public class DriverController
 {
 
     private final DriverService driverService;
+    
+    @Autowired
+    private DriverFactory driverFactory;
 
 
     @Autowired
@@ -78,5 +85,26 @@ public class DriverController
         throws ConstraintsViolationException, EntityNotFoundException
     {
         return DriverMapper.makeDriverDTOList(driverService.find(onlineStatus));
+    }
+    
+    @PutMapping("/selectcar")
+    public void selectCar (@RequestParam("driverid") Long driverId, @RequestParam("licenseplate") String licenseplate) throws CarAlreadyInUseException, ServiceException {
+    	driverService.selectCar(driverId, licenseplate.replaceAll(" ", "").toUpperCase());
+    }
+    
+    @PutMapping("/deselectcar")
+    public void deSelectCar (@RequestParam("driverid") Long driverId, @RequestParam("licenseplate") String licenseplate) throws ServiceException{
+    	driverService.deSelectCar(driverId, licenseplate.replaceAll(" ", "").toUpperCase());
+    }
+    
+    @GetMapping("/all")
+    public List<DriverDTO> getDrivers () {
+    	return DriverMapper.makeDriverDTOList(driverService.findAll());
+    }
+    
+    @GetMapping ("/filter")
+    public List<DriverDTO> filterByType (@RequestParam String driverType) {
+    	Criteria criteria = driverFactory.createFactory(driverType);
+    	return criteria.meetCriteria();
     }
 }

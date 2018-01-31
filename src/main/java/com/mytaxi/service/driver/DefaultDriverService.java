@@ -1,13 +1,23 @@
 package com.mytaxi.service.driver;
 
 import com.mytaxi.dataaccessobject.DriverRepository;
+import com.mytaxi.domainobject.CarDO;
 import com.mytaxi.domainobject.DriverDO;
 import com.mytaxi.domainvalue.GeoCoordinate;
 import com.mytaxi.domainvalue.OnlineStatus;
+import com.mytaxi.exception.CarAlreadyInUseException;
 import com.mytaxi.exception.ConstraintsViolationException;
 import com.mytaxi.exception.EntityNotFoundException;
+import com.mytaxi.exception.ServiceException;
+import com.mytaxi.service.car.CarService;
+
+import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.annotations.Cache;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +33,9 @@ public class DefaultDriverService implements DriverService
     private static org.slf4j.Logger LOG = LoggerFactory.getLogger(DefaultDriverService.class);
 
     private final DriverRepository driverRepository;
+    
+    @Autowired
+    CarService carService;
 
 
     public DefaultDriverService(final DriverRepository driverRepository)
@@ -122,5 +135,51 @@ public class DefaultDriverService implements DriverService
         }
         return driverDO;
     }
+
+
+	@Override
+	public void selectCar(Long id, String licensePlate) throws CarAlreadyInUseException, ServiceException {
+		DriverDO driverDO = null;
+		try {
+			driverDO = driverRepository.findByIdAndOnlineStatus(id, OnlineStatus.ONLINE);
+			if (driverDO == null) {
+				throw new EntityNotFoundException(null);
+			}
+			CarDO carDO = carService.find(licensePlate);
+			if (carDO.getDriverDO() != null && carDO.getDriverDO().getId() != driverDO.getId()) {
+				throw new CarAlreadyInUseException("Selected car is already hired");
+			}
+			driverDO.setCarDO(carDO);
+			create(driverDO);
+		} catch (ConstraintsViolationException | EntityNotFoundException e) {
+			throw new ServiceException("Driver is not online Status or information not found! ");
+		}
+
+	}
+
+	@Override
+	public void deSelectCar(Long id, String licensePlate) throws ServiceException {
+		try {
+			DriverDO driverDO = findDriverChecked(id);
+			driverDO.setCarDO(null);
+			create(driverDO);
+		} catch (EntityNotFoundException | ConstraintsViolationException e) {
+			throw new ServiceException("Unable to deselect the car");
+		}
+	}
+	
+	@Override
+	public DriverDO findByUsernameAndPassword (String username, String password) {
+		return driverRepository.findByUsernameAndPassword(username, password);
+	}
+	
+	@Override
+	@Cacheable("drivers")
+	public List<DriverDO> findAll () {
+		Iterable<DriverDO> driversDO = driverRepository.findAll();
+		List<DriverDO> drivers = new ArrayList<>();
+		driversDO.forEach(drivers :: add);
+		return drivers;
+	}
 
 }

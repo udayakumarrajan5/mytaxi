@@ -36,7 +36,7 @@ You should commit into your local git repository and include the commit history 
  
 ## Task 2
 First come first serve: A car can be selected by exactly one ONLINE Driver. If a second driver tries to select a already used car you should throw a CarAlreadyInUseException.
-
+	
 ## Task 3
 Make use of the filter pattern to implement an endpoint in the DriverController to get a list of drivers with specific characteristics. Reuse the characteristics you implemented in task 1.
 

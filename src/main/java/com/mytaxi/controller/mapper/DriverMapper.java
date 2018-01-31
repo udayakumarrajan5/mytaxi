@@ -20,7 +20,10 @@ public class DriverMapper
         DriverDTO.DriverDTOBuilder driverDTOBuilder = DriverDTO.newBuilder()
             .setId(driverDO.getId())
             .setPassword(driverDO.getPassword())
-            .setUsername(driverDO.getUsername());
+            .setUsername(driverDO.getUsername())
+            .setHiredCar(driverDO.getCarDO())
+            .setGearType(driverDO.getGearType());
+        	
 
         GeoCoordinate coordinate = driverDO.getCoordinate();
         if (coordinate != null)

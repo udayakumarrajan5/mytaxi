@@ -13,4 +13,8 @@ public interface DriverRepository extends CrudRepository<DriverDO, Long>
 {
 
     List<DriverDO> findByOnlineStatus(OnlineStatus onlineStatus);
+    
+    DriverDO findByIdAndOnlineStatus (Long id, OnlineStatus onlineStatus);
+    
+    DriverDO findByUsernameAndPassword (String username, String password);
 }

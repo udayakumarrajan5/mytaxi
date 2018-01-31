@@ -3,13 +3,18 @@ package com.mytaxi.domainobject;
 import com.mytaxi.domainvalue.GeoCoordinate;
 import com.mytaxi.domainvalue.OnlineStatus;
 import java.time.ZonedDateTime;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
@@ -52,6 +57,12 @@ public class DriverDO
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OnlineStatus onlineStatus;
+    
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "car_id")
+    private CarDO carDO;
+    @Column
+    private String gearType;
 
 
     private DriverDO()
@@ -129,5 +140,39 @@ public class DriverDO
         this.coordinate = coordinate;
         this.dateCoordinateUpdated = ZonedDateTime.now();
     }
+
+
+	/**
+	 * @return the carDO
+	 */
+	public CarDO getCarDO() {
+		return carDO;
+	}
+
+
+	/**
+	 * @param carDO the carDO to set
+	 */
+	public void setCarDO(CarDO carDO) {
+		this.carDO = carDO;
+	}
+
+
+	/**
+	 * @return the gearType
+	 */
+	public String getGearType() {
+		return gearType;
+	}
+
+
+	/**
+	 * @param gearType the gearType to set
+	 */
+	public void setGearType(String gearType) {
+		this.gearType = gearType;
+	}
+    
+    
 
 }
